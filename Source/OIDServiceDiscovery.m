@@ -182,17 +182,17 @@ static NSString *const kOPTosURIKey = @"op_tos_uri";
 }
 
 - (nullable instancetype)initWithCoder:(NSCoder *)aDecoder {
-  NSError *error;
-  NSDictionary *dictionary = [[NSDictionary alloc] initWithCoder:aDecoder];
-  self = [self initWithDictionary:dictionary error:&error];
-  if (error) {
-    return nil;
-  }
-  return self;
+    NSDictionary * dictionary = [aDecoder decodeObjectOfClasses:[NSSet setWithArray:@[NSDictionary.class, NSArray.class]] forKey:@"discoveryDictionary"];
+    NSError * error;
+    self = [self initWithDictionary:dictionary error:&error];
+    if (error) {
+        return nil;
+    }
+    return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
-  [_discoveryDictionary encodeWithCoder:aCoder];
+    [aCoder encodeObject:_discoveryDictionary forKey:@"discoveryDictionary"];
 }
 
 #pragma mark - Properties
