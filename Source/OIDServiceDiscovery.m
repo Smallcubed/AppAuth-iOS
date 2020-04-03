@@ -98,14 +98,25 @@ static NSString *const kOPTosURIKey = @"op_tos_uri";
 
 - (nullable instancetype)initWithDictionary:(NSDictionary *)serviceDiscoveryDictionary
                                       error:(NSError **_Nullable)error {
-  if (![[self class] dictionaryHasRequiredFields:serviceDiscoveryDictionary error:error]) {
-    return nil;
-  }
-  self = [super init];
-  if (self) {
-    _discoveryDictionary = [serviceDiscoveryDictionary copy];
-  }
-  return self;
+
+    NSDictionary * cleanedDictionary = serviceDiscoveryDictionary;
+    //  This is a fix for MS discovery service which puts in an invalid replacement value into the issuer field (in violation of the openid-config definition - bravo MS)
+    NSString * tenantID = @"{tenantid}";
+    NSRange tenantRange = [serviceDiscoveryDictionary[kIssuerKey] rangeOfString:tenantID]; 
+    if (tenantRange.location != NSNotFound) {
+        NSMutableDictionary * mutDict = [serviceDiscoveryDictionary mutableCopy];
+        mutDict[kIssuerKey] = [serviceDiscoveryDictionary[kIssuerKey] stringByReplacingOccurrencesOfString:tenantID withString:@"common"];
+        cleanedDictionary = [NSDictionary dictionaryWithDictionary:mutDict];
+    }
+
+    if (![[self class] dictionaryHasRequiredFields:cleanedDictionary error:error]) {
+        return nil;
+    }
+    self = [super init];
+    if (self) {
+        _discoveryDictionary = [cleanedDictionary copy];
+    }
+    return self;
 }
 
 #pragma mark -
@@ -149,7 +160,7 @@ static NSString *const kOPTosURIKey = @"op_tos_uri";
     kTokenEndpointKey,
     kJWKSURLKey
   ];
-
+    
   for (NSString *field in requiredURLFields) {
     if (![NSURL URLWithString:dictionary[field]]) {
       if (error) {
