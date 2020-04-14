@@ -122,6 +122,7 @@ static NSString *const kTokenExchangeRequestException =
                                          parameters:parameters
                                            instance:self];
     _additionalParameters = additionalParameters;
+      _scope = request.scope;
   }
   return self;
 }
